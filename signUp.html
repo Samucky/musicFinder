@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrarse - MusicFinde</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-2xl font-bold text-indigo-600 text-center mb-6">Crear Cuenta</h2>
+            <form id="registerForm" method="POST">
+                <div class="mb-4">
+                    <label for="name" class="block text-gray-700">Nombre Completo</label>
+                    <input type="text" id="name" name="nombre" class="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-300" required>
+                </div>
+                <div class="mb-4">
+                    <label for="email" class="block text-gray-700">Correo Electrónico</label>
+                    <input type="email" id="email" name="correo" class="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-300" required>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="block text-gray-700">Contraseña</label>
+                    <input type="password" id="password" name="contrasena" class="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-300" required>
+                </div>
+                <div class="mb-4">
+                    <label for="role" class="block text-gray-700">Tipo de Usuario</label>
+                    <select id="role" name="tipoUsuario" class="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-300">
+                        <option value="Estudiante">Estudiante</option>
+                        <option value="Profesor">Profesor</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700">Registrarse</button>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm text-gray-600">¿Ya tienes una cuenta? 
+                        <a href="login.html" class="text-indigo-600 hover:underline">Inicia Sesión</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("registerForm").addEventListener("submit", function(event) {
+            event.preventDefault();  // Evitar que el formulario se envíe de forma tradicional
+
+            const formData = new FormData(event.target);
+            const userData = {
+                nombre: formData.get("nombre"),
+                correo: formData.get("correo"),
+                contrasena: formData.get("contrasena"),
+                tipoUsuario: formData.get("tipoUsuario"),
+                fechaRegistro: new Date().toISOString().slice(0, 19).replace("T", " "),  // Fecha actual en formato esperado
+                fotoPerfil: null  // fotoPerfil como null
+            };
+
+            console.log("Datos del nuevo usuario:", userData);
+            
+            // Realizamos la solicitud para registrar al usuario en la API
+            fetch('https://apimusicfinder.onrender.com/api/usuarios/usuarios', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.id) {
+                    // Si el registro es exitoso, el servidor devuelve el "id" del usuario
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Registro Exitoso!',
+                        text: `Te has registrado correctamente con el ID: ${data.id}`,
+                        showConfirmButton: false,
+                        timer: 2000
+                    }).then(() => {
+                        window.location.href = 'login.html';  // Redirige al login
+                    });
+                } else {
+                    // Si ocurre algún error en el registro
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Hubo un problema al registrar tu cuenta. Intenta de nuevo.',
+                    });
+                }
+            })
+            .catch(error => {
+                console.error("Error al registrar usuario:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de Conexión',
+                    text: 'No se pudo conectar al servidor. Intenta nuevamente.',
+                });
+            });
+        });
+    </script>
+</body>
+</html>

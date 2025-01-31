@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - MusicFinder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-2xl font-bold text-indigo-600 text-center mb-6">Iniciar Sesión</h2>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="email" class="block text-gray-700">Correo Electrónico</label>
+                    <input type="email" id="email" name="email" class="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-300" required>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="block text-gray-700">Contraseña</label>
+                    <input type="password" id="password" name="password" class="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-indigo-300" required>
+                </div>
+                <div class="mb-4">
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700">Ingresar</button>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm text-gray-600">¿No tienes una cuenta? 
+                        <a href="signup.html" class="text-indigo-600 hover:underline">Regístrate</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Obtenemos el formulario
+        const loginForm = document.getElementById('login-form');
+
+        // Definimos la URL de la API
+        const apiUrl = 'https://apimusicfinder.onrender.com/api/usuarios/login'; // Cambia esta URL a la de tu backend
+
+        // Evento para manejar el envío del formulario
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevenimos el envío del formulario por defecto
+
+            // Obtenemos los datos del formulario
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                // Realizamos la solicitud POST al backend para autenticar utilizando fetch
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ correo: email, contrasena: password })
+                });
+
+                // Verificamos si la respuesta es exitosa
+                const data = await response.json();
+
+                if (response.ok && data.message === "Inicio de sesión exitoso") {
+                    // Guardamos el ID del usuario en el localStorage
+                    localStorage.setItem('userID', data.usuario.id); // Guardamos el ID del usuario
+
+                    // Mostramos un mensaje con SweetAlert
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Bienvenido!',
+                        text: `Has iniciado sesión correctamente como ${data.usuario.nombre}`,
+                        showConfirmButton: false,
+                        timer: 2000
+                    }).then(() => {
+                        // Redirigimos al usuario a la página de inicio (home.html)
+                        window.location.href = 'home.html'; // Cambia la ruta según sea necesario
+                    });
+                } else {
+                    // Si las credenciales no son correctas, mostramos un error
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Credenciales incorrectas. Intenta nuevamente.',
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error al iniciar sesión:', error);
+                
+                // Mostrar un mensaje con detalles del error
+                if (error.response) {
+                    // El servidor respondió con un código de error
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: `Error: ${error.response.status} - ${error.response.data.error}`,
+                    });
+                } else if (error.request) {
+                    // La solicitud fue realizada pero no hubo respuesta
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de Red',
+                        text: 'No se pudo conectar con el servidor. Verifica la conexión.',
+                    });
+                } else {
+                    // Algo ocurrió en la configuración de la solicitud
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error desconocido',
+                        text: `Hubo un error: ${error.message}`,
+                    });
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
